@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/Microsoft/go-winio"
+	winio "github.com/Microsoft/go-winio"
 	"github.com/docker/go-connections/sockets"
 )
 
@@ -45,7 +45,13 @@ func Init(proto, addr, socketGroup string, tlsConfig *tls.Config) ([]net.Listene
 			return nil, err
 		}
 		ls = append(ls, l)
-
+	case "unix":
+		addr, err := net.ResolveUnixAddr("unix", addr)
+		l, err := net.ListenUnix("unix", addr)
+		if err != nil {
+			return nil, fmt.Errorf("can't create unix socket %s: %v", addr, err)
+		}
+		ls = append(ls, l)
 	default:
 		return nil, fmt.Errorf("invalid protocol format: windows only supports tcp and npipe")
 	}
